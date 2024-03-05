@@ -3,7 +3,7 @@ const ethers = require('ethers')
 require('colors')
 
 const provider = new ethers.providers.WebSocketProvider(
-    'wss://mainnet.infura.io/ws/v3/dfa95618040c4701aa560355d1eec5c2'
+    'wss://go.getblock.io/bbcea3ee1432440d9d550e65eadc0fb5'
 )
 
 const addresses = fs
