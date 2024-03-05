@@ -6,9 +6,18 @@ const delay = time => new Promise(res => setTimeout(res, time));
 const words = fs.readFileSync("bip39.txt", { encoding: 'utf8', flag: 'r' }).replace(/(\r)/gm, "").toLowerCase().split("\n");
 const usedMnemonics = new Set();
 
+// Fisher-Yates shuffle algorithm
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 function gen12(words) {
     const n = 24;
-    const shuffled = words.sort(() => 0.5 - Math.random());
+    const shuffled = shuffleArray(words.slice()); // Make a copy of the original array before shuffling
     return shuffled.slice(0, n).join(" ");
 }
 
