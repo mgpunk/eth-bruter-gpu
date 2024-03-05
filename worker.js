@@ -8,7 +8,11 @@ const usedMnemonics = new Set();
 
 function gen12(words) {
     const n = 24;
-    const shuffled = words.sort(() => 0.5 - Math.random());
+    const shuffled = words.slice(); // Create a copy of the array
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Swap elements
+    }
     return shuffled.slice(0, n).join(" ");
 }
 
