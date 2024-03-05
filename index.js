@@ -1,44 +1,37 @@
-const { fork } = require("child_process");
-var devnull = require("dev-null")
-const { program } = require('commander');
-const colors = require('colors');
-var fs = require("fs")
-var tries = 0, hits = 0
-var children = []
+const fs = require("fs");
+const { ethers } = require("ethers");
 
-program
-    .option("-c, --count <number>", "number of processes")
+let tries = 0, hits = 0;
+const delay = time => new Promise(res => setTimeout(res, time));
+const words = fs.readFileSync("bip39.txt", { encoding: 'utf8', flag: 'r' }).replace(/(\r)/gm, "").toLowerCase().split("\n");
+const usedMnemonics = new Set();
 
-var options = program.parse().opts()
-const count = parseInt(options.count) || 6
-console.log(`starting ${count} processes`.yellow)
-
-for(var i = 0; i < count; i++){
-    children[i] = fork("worker.js", [], { detached: false, stdio: "pipe" })
-    children[i].stdout.setEncoding('utf8')
-    children[i].stdout.on("data", (data) => {
-        if(data == "+") {
-            hits++
-            tries++
-        } else {
-            tries++
-        }
-    }).pipe(devnull())
+function gen12(words) {
+    const n = 24;
+    const shuffled = words.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, n).join(" ");
 }
 
-process.on("SIGTERM", () => {
-    children.forEach((val) => {
-        val.kill("SIGTERM")
-    })
-})
+console.log("starting....");
 
-console.log("all processes started".green)
+async function doCheck() {
+    tries++;
+    try {
+        let mnemonic;
+        do {
+            mnemonic = gen12(words);
+        } while (usedMnemonics.has(mnemonic));
+        
+        usedMnemonics.add(mnemonic);
 
-import('log-update').then(mod => {
-    const frames = ['-', '\\', '|', '/'];
-    var index = 0;
-    setInterval(() => {
-	    const frame = frames[index = ++index % frames.length];
-        mod.default(`${frame} tries: ${tries}; hits: ${hits} ${frame}`);
-    }, 1);
-});
+        const wallet = ethers.Wallet.fromMnemonic(mnemonic);
+        fs.appendFileSync('hits.txt', wallet.address + "," + wallet.privateKey + "\n");
+        hits++;
+        process.stdout.write("+");
+    } catch (e) { }
+    await delay(0); // Prevent Call Stack Overflow
+    process.stdout.write("-");
+    doCheck();
+}
+
+doCheck();
