@@ -26,6 +26,9 @@ async function doCheck() {
         tries = 0;
         hits = 0;
         usedMnemonics.clear(); // Clearing used mnemonics
+        await delay(0); // Ensure that delay is awaited before restarting
+        doCheck(); // Restart the process
+        return; // Return to prevent further execution in the current function call
     }
 
     try {
